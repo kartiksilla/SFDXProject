@@ -1,3 +1,5 @@
+#!groovy
+import groovy.json.JsonSlurperClassic
 def deploy(username, instanceUrl, keyfile, clientid) {
     script {
       sh """
