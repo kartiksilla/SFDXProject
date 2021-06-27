@@ -25,25 +25,10 @@ pipeline {
                 script {
                     println 'KEY IS' 
                     credentialsId = env.JWT_CRED_ID_DH
-                    instanceUrl = env.HUB_ORG_DH
+                    instanceUrl = env.SFDC_HOST_DH
                     username = env.HUB_ORG_DH
                     clientid = env.CONNECTED_APP_CONSUMER_KEY_DH
-                    if (env.BRANCH_NAME.equals("migration")) {
-                        credentialsId = "salesforce-migration-key"
-                        instanceUrl = "https://test.salesforce.com"
-                        username = "shadab_hussain@epam.com.yamaha.migration"
-                        clientid = "3MVG904d7VkkD2aNnhJt.id14IAX9JW2lwLI7YCWmXbK6Z8bwBhEb1W9Cahpkgtw0g5IfzXFhbEc837WtI0mU"
-                    } else if (env.BRANCH_NAME.equals("qa-branch")) {
-                        credentialsId = "salesforce-qa-key"
-                        instanceUrl = "https://test.salesforce.com"
-                        username = "shadab_hussain@epam.com.tst"
-                        clientid = "3MVG9w8uXui2aB_qW5xdW0wp1KeiNA.V1Kb4xJ2kkuraHmv4ZriCMRZKSQ8Jc09cVUbVzT6557ZRNS9ykIF1P"
-                    } else if (env.BRANCH_NAME.equals("master")) {
-                        credentialsId = "salesforce-prod-key"
-                        instanceUrl = "https://login.salesforce.com"
-                        username = "shadab_hussain@epam.com.epamdev1"
-                        clientid = "3MVG96mGXeuuwTZjj1Ln7Z0O5s.yEcBmxFrznlNmMI_noC_DKacLcEKFJTcN8HBwEtZbvmuJW68hbAzYzFpu7"
-                    }
+                    
                 }
             }
         }
