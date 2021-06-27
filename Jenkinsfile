@@ -17,7 +17,7 @@ def deploy(username, instanceUrl, keyfile, clientid) {
 }
 
 pipeline {
-    agent { label 'aem-jenkins-agent' }
+    agent { label 'master' }
 
     tools {
         nodejs 'NodeJS'
