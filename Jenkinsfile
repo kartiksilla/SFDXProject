@@ -20,7 +20,7 @@ pipeline {
     agent { label 'aem-jenkins-agent' }
 
     tools {
-        nodejs 'nodejs-14.16.0-lts'
+        nodejs 'nodejs-14.16.0'
     }
 
     stages {
