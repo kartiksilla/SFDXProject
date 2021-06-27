@@ -1,49 +1,66 @@
-#!groovy
-import groovy.json.JsonSlurperClassic
-node {
+def deploy(username, instanceUrl, keyfile, clientid) {
+    script {
+      sh """
+         npm install sfdx-cli --global
+         echo "y" | sfdx plugins:install sfdx-git-delta
+         sfdx sgd:source:delta --to HEAD --from HEAD^ --output .
+         echo 'DELTA TO DEPLOY:'
+         cat ./package/*
+         sfdx auth:jwt:grant --clientid ${clientid} \
+         --jwtkeyfile ${keyfile} --username ${username} \
+         --instanceurl ${instanceUrl}
+         sfdx force:source:deploy -x ./package/package.xml -u ${username}
+         """
+  }
+}
 
-    def BUILD_NUMBER=env.BUILD_NUMBER
-    def RUN_ARTIFACT_DIR="tests/${BUILD_NUMBER}"
-    def SFDC_USERNAME
+pipeline {
+    agent { label 'aem-jenkins-agent' }
 
-    def HUB_ORG=env.HUB_ORG_DH
-    def SFDC_HOST = env.SFDC_HOST_DH
-    def JWT_KEY_CRED_ID = env.JWT_CRED_ID_DH
-    def CONNECTED_APP_CONSUMER_KEY=env.CONNECTED_APP_CONSUMER_KEY_DH
-
-    println 'KEY IS' 
-    println JWT_KEY_CRED_ID
-    println HUB_ORG
-    println SFDC_HOST
-    println CONNECTED_APP_CONSUMER_KEY
-    def toolbelt = tool 'toolbelt'
-
-    stage('checkout source') {
-        // when running in multi-branch job, one must issue this command
-        checkout scm
+    tools {
+        nodejs 'nodejs-14.16.0-lts'
     }
 
-    withCredentials([file(credentialsId: JWT_KEY_CRED_ID, variable: 'jwt_key_file')]) {
-        stage('Deploye Code') {
-            if (isUnix()) {
-                rc = sh returnStatus: true, script: "${toolbelt} force:auth:jwt:grant --clientid ${CONNECTED_APP_CONSUMER_KEY} --username ${HUB_ORG} --jwtkeyfile ${jwt_key_file} --setdefaultdevhubusername --instanceurl ${SFDC_HOST}"
-            }else{
-                 rc = bat returnStatus: true, script: "\"${toolbelt}\" force:auth:jwt:grant --clientid ${CONNECTED_APP_CONSUMER_KEY} --username ${HUB_ORG} --jwtkeyfile \"${jwt_key_file}\" --setdefaultdevhubusername --instanceurl ${SFDC_HOST}"
+    stages {
+        stage('Set parameters') {
+            steps {
+                script {
+                    println 'KEY IS' 
+                    println JWT_KEY_CRED_ID
+                    println HUB_ORG
+                    println SFDC_HOST
+                    println CONNECTED_APP_CONSUMER_KEY
+                    credentialsId = env.JWT_CRED_ID_DH
+                    instanceUrl = env.HUB_ORG_DH
+                    username = env.HUB_ORG_DH
+                    clientid = env.CONNECTED_APP_CONSUMER_KEY_DH
+                    if (env.BRANCH_NAME.equals("migration")) {
+                        credentialsId = "salesforce-migration-key"
+                        instanceUrl = "https://test.salesforce.com"
+                        username = "shadab_hussain@epam.com.yamaha.migration"
+                        clientid = "3MVG904d7VkkD2aNnhJt.id14IAX9JW2lwLI7YCWmXbK6Z8bwBhEb1W9Cahpkgtw0g5IfzXFhbEc837WtI0mU"
+                    } else if (env.BRANCH_NAME.equals("qa-branch")) {
+                        credentialsId = "salesforce-qa-key"
+                        instanceUrl = "https://test.salesforce.com"
+                        username = "shadab_hussain@epam.com.tst"
+                        clientid = "3MVG9w8uXui2aB_qW5xdW0wp1KeiNA.V1Kb4xJ2kkuraHmv4ZriCMRZKSQ8Jc09cVUbVzT6557ZRNS9ykIF1P"
+                    } else if (env.BRANCH_NAME.equals("master")) {
+                        credentialsId = "salesforce-prod-key"
+                        instanceUrl = "https://login.salesforce.com"
+                        username = "shadab_hussain@epam.com.epamdev1"
+                        clientid = "3MVG96mGXeuuwTZjj1Ln7Z0O5s.yEcBmxFrznlNmMI_noC_DKacLcEKFJTcN8HBwEtZbvmuJW68hbAzYzFpu7"
+                    }
+                }
             }
-            if (rc != 0) { error 'hub org authorization failed' }
-
-			println rc
-			
-			// need to pull out assigned username
-			if (isUnix()) {
-				rmsg = sh returnStdout: true, script: "${toolbelt} force:mdapi:deploy -d manifest/. -u ${HUB_ORG}"
-			}else{
-			   rmsg = bat returnStdout: true, script: "\"${toolbelt}\" force:mdapi:deploy -d manifest/. -u ${HUB_ORG}"
-			}
-			  
-            printf rmsg
-            println('Hello from a Job DSL script!')
-            println(rmsg)
         }
-    }
+        stage('Deploy') {
+            steps {
+                script {
+                    withCredentials([file(credentialsId: "${credentialsId}", variable: 'KEYFILE')]) {
+                        deploy(username, instanceUrl, KEYFILE, clientid)
+                    }
+                }
+            }
+        }
+	}
 }
