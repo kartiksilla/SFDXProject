@@ -7,7 +7,7 @@ def deploy(username, instanceUrl, keyfile, clientid) {
          sfdx auth:jwt:grant --clientid ${clientid} \
          --jwtkeyfile ${keyfile} --username ${username} \
          --instanceurl ${instanceUrl}
-         sfdx force:source:deploy -x ./package/package.xml -u ${username}
+         sfdx force:source:deploy -x package.xml -u ${username}
          """
   }
 }
