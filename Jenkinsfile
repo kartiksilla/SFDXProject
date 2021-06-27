@@ -28,10 +28,6 @@ pipeline {
             steps {
                 script {
                     println 'KEY IS' 
-                    println JWT_KEY_CRED_ID
-                    println HUB_ORG
-                    println SFDC_HOST
-                    println CONNECTED_APP_CONSUMER_KEY
                     credentialsId = env.JWT_CRED_ID_DH
                     instanceUrl = env.HUB_ORG_DH
                     username = env.HUB_ORG_DH
