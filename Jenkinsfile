@@ -4,10 +4,6 @@ def deploy(username, instanceUrl, keyfile, clientid) {
     script {
       sh """
          npm install sfdx-cli --global
-         echo "y" | sfdx plugins:install sfdx-git-delta
-         sfdx sgd:source:delta --to HEAD --from HEAD^ --output .
-         echo 'DELTA TO DEPLOY:'
-         cat ./package/*
          sfdx auth:jwt:grant --clientid ${clientid} \
          --jwtkeyfile ${keyfile} --username ${username} \
          --instanceurl ${instanceUrl}
